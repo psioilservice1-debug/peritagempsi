@@ -1214,6 +1214,10 @@ window.addEventListener('unhandledrejection', function(e){
     return new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     });
+  } catch(err) {
+    console.error("Erro ao gerar o Excel:", err);
+    throw err;
+  }
   }
 
   function safeFileName(f, ext){
