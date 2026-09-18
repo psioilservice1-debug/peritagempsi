@@ -435,6 +435,14 @@
 
   .hidden{display:none !important;}
 </style>
+<script>
+window.addEventListener('error', function(e){
+  console.error('[SITE] Erro JavaScript:', e.error || e.message);
+});
+window.addEventListener('unhandledrejection', function(e){
+  console.error('[SITE] Promise rejeitada:', e.reason);
+});
+</script>
 </head>
 <body>
 
@@ -601,7 +609,30 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script>
+(function(){
+  window.__exceljsReady = new Promise(function(resolve, reject){
+    function load(src, fallback){
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = function(){
+        if (window.ExcelJS) resolve(window.ExcelJS);
+        else if (fallback) load(fallback, null);
+        else reject(new Error('ExcelJS carregou, mas não disponibilizou a biblioteca.'));
+      };
+      s.onerror = function(){
+        if (fallback) load(fallback, null);
+        else reject(new Error('Não foi possível carregar a biblioteca ExcelJS. Verifique sua conexão com a internet.'));
+      };
+      document.head.appendChild(s);
+    }
+    load(
+      'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js',
+      'https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js'
+    );
+  });
+})();
+</script>
 <script>
 (function(){
   "use strict";
@@ -1057,6 +1088,10 @@
   }
 
   async function buildExcelBlob(f){
+  try {
+    if (window.__exceljsReady) await window.__exceljsReady;
+    if (!window.ExcelJS) throw new Error('A biblioteca ExcelJS não foi carregada.');
+
     if(typeof ExcelJS === "undefined"){
       throw new Error("A biblioteca de Excel não foi carregada.");
     }
